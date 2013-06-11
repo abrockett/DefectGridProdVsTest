@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DefectTrendProdVsTest</title>
+
+    <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("ProdVsTestCalculator",{extend:"Rally.data.lookback.calculator.TimeSeriesCalculator",getMetrics:function(){return[{field:"Environment",as:"Prod",f:"filteredCount",filterField:"Environment",filterValues:["Production"],display:"column"},{field:"Environment",as:"Test",f:"filteredCount",filterField:"Environment",filterValues:["Test"],display:"column"}]}});
+                Ext.define("DefectTrendApp",{extend:"Rally.app.App",requires:["ProdVsTestCalculator"],componentCls:"app",items:[{xtype:"rallychart",storeConfig:{fetch:["Name","Environment","OpenedDate","Project"],hydrate:["Environment"],filters:[{property:"_ProjectHierarchy",operator:"=",value:this.getContext().getProject().ObjectID},{property:"_TypeHierarchy",operator:"=",value:"Defect"},{property:"Resolution",operator:"=",value:"Duplicate"},{property:"_ValidFrom",operator:"=",value:{$gte:"2010-02-01TZ",$lte:"current"}}]},calculatorType:"ProdVsTestCalculator",calculatorConfig:{},chartConfig:{chart:{zoomType:"xy"},title:{text:"Defect Trends"},xAxis:{tickmarkPlacement:"on",tickInterval:20,title:{text:"Days"}},yAxis:[{title:{text:"Count"}}],plotOptions:{series:{marker:{enabled:!1}},area:{stacking:"normal"}}}}]});
+
+            Rally.launchApp('DefectTrendApp', {
+                name:"DefectTrendProdVsTest",
+	            parentRepos:""
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        .app {
+     /* Add app styles here */
+}
+
+    </style>
+</head>
+<body></body>
+</html>
