@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DefectTrendProdVsTest</title>
+    <title>DefectGridProdVsTest</title>
 
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
         Rally.onReady(function () {
-                Ext.define("ProdVsTestCalculator",{extend:"Rally.data.lookback.calculator.TimeSeriesCalculator",getMetrics:function(){return[{field:"Environment",as:"Prod",f:"filteredCount",filterField:"Environment",filterValues:["Production"],display:"column"},{field:"Environment",as:"Test",f:"filteredCount",filterField:"Environment",filterValues:["Test"],display:"column"}]}});
-                Ext.define("DefectTrendApp",{extend:"Rally.app.App",requires:["ProdVsTestCalculator"],componentCls:"app",items:[{xtype:"rallychart",storeConfig:{fetch:["Name","Environment","OpenedDate","Project"],hydrate:["Environment"],filters:[{property:"_ProjectHierarchy",operator:"=",value:this.getContext().getProject().ObjectID},{property:"_TypeHierarchy",operator:"=",value:"Defect"},{property:"Resolution",operator:"=",value:"Duplicate"},{property:"_ValidFrom",operator:"=",value:{$gte:"2010-02-01TZ",$lte:"current"}}]},calculatorType:"ProdVsTestCalculator",calculatorConfig:{},chartConfig:{chart:{zoomType:"xy"},title:{text:"Defect Trends"},xAxis:{tickmarkPlacement:"on",tickInterval:20,title:{text:"Days"}},yAxis:[{title:{text:"Count"}}],plotOptions:{series:{marker:{enabled:!1}},area:{stacking:"normal"}}}}]});
+                Ext.define("DefectGridApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){var dataScope=this.getContext().getDataContext(),chart=Ext.create("Rally.ui.chart.Chart",{});Ext.create("Rally.data.WsapiDataStore",{model:"Defect",context:dataScope,fetch:["Name","CreationDate"],sorters:[{property:"CreationDate",direction:"ASC"}],pageSize:5,limit:5,autoLoad:!0,listeners:{load:this._onDataLoaded,scope:this}})},_onDataLoaded:function(store,data){var records=[],date;Ext.Array.each(data,function(record){date=record.get("CreationDate").getFullYear()+" "+record.get("CreationDate").getMonth(),records.push({Name:record.get("Name"),CreationDate:date})}),console.log(records),series=_.groupBy(records,function(record){return record.CreationDate}),console.log(series)}});
 
-            Rally.launchApp('DefectTrendApp', {
-                name:"DefectTrendProdVsTest",
-                parentRepos:""
+            Rally.launchApp('DefectGridApp', {
+                name:"DefectGridProdVsTest",
+	            parentRepos:""
             });
 
         });

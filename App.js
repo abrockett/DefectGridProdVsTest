@@ -9,7 +9,7 @@ Ext.define('DefectGridApp', {
         Ext.create('Rally.data.WsapiDataStore', {
             model: 'Defect',
             context: dataScope,
-            fetch: ['Name', 'CreationDate'],
+            fetch: ['Name', 'CreationDate', 'Environment'],
             sorters: [
                 {
                     property: 'CreationDate',
@@ -28,20 +28,24 @@ Ext.define('DefectGridApp', {
 
     _onDataLoaded: function(store, data) {
         debugger;
-        var records = [];
-        var date;
+        var env, date, seriesData = {};
         Ext.Array.each(data, function(record) {
-            //Perform custom actions with the data here
-
-            date = record.get('CreationDate').getFullYear() + ' ' + record.get('CreationDate').getMonth();
-            records.push({
+            date = Ext.Date.format(record.get('CreationDate'), 'Y-m');
+            env = record.get('Environment');
+            if(!seriesData[env]) {
+                seriesData[env] = [];
+            }
+            seriesData[env].push({
                 Name: record.get('Name'),
                 CreationDate: date
             });
         });
-        console.log(records);
-        series = _.groupBy(records, function(record) { return record.CreationDate });
-        console.log(series);
+
+        // var prodSeries = _.countBy(prodDefects, function(record) { return record.CreationDate; });
+        // var testSeries = _.countBy(testDefects, function(record) { return record.CreationDate; });
+        // var otherSeries = _.countBy(otherDefects, function(record) { return record.CreationDate; });
+
+        console.log(seriesData);
 
         // this.add({
         //     xtype: 'rallygrid',
