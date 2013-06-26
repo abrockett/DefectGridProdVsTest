@@ -8,10 +8,10 @@ Ext.define('DefectsByEnvironmentApp', {
         Ext.create('Rally.data.WsapiDataStore', {
             model: 'Defect',
             context: dataScope,
-            fetch: ['Name', 'CreationDate', 'Environment'],
+            fetch: ['Name', 'OpenedDate', 'Environment'],
             sorters: [
                 {
-                    property: 'CreationDate',
+                    property: 'OpenedDate',
                     direction: 'ASC'
                 }
             ],
@@ -51,7 +51,7 @@ Ext.define('DefectsByEnvironmentApp', {
         var env, date, environmentData = {}, environments = [], countData = {}, seriesData = [];
         var me = this;
         Ext.Array.each(data, function(record) {
-            date = Ext.Date.format(record.get('CreationDate'), 'Y-n');
+            date = Ext.Date.format(record.get('OpenedDate'), 'Y-n');
             env = record.get('Environment');
             if(!environmentData[env]) {
                 environments.push(env);
@@ -59,12 +59,12 @@ Ext.define('DefectsByEnvironmentApp', {
             }
             environmentData[env].push({
                 Name: record.get('Name'),
-                CreationDate: date
+                OpenedDate: date
             });
         });
 
         Ext.Array.each(environments, function(environment) {
-            countData[environment] = _.countBy(environmentData[environment], function(record) { return record.CreationDate; });
+            countData[environment] = _.countBy(environmentData[environment], function(record) { return record.OpenedDate; });
             seriesData.push({
                 name: environment,
                 data: me._createSeries(countData[environment])
@@ -144,7 +144,7 @@ Ext.define('DefectsByEnvironmentApp', {
                             color: 'black'
                         }
                     }
-                },
+                }
             },
             chartData: {
                 categories: this._dates,
