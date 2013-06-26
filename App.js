@@ -1,11 +1,9 @@
-Ext.define('DefectGridApp', {
+Ext.define('DefectsByEnvironmentApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
-
-            
+         
     launch: function() {
         var dataScope = this.getContext().getDataContext();
-        var chart = Ext.create('Rally.ui.chart.Chart', {});
         Ext.create('Rally.data.WsapiDataStore', {
             model: 'Defect',
             context: dataScope,
@@ -29,6 +27,7 @@ Ext.define('DefectGridApp', {
     _createSeries: function(data) {
         var startYear = 2010, startMonth = 1, date, result = [];
         var endYear = new Date().getFullYear(), endMonth = new Date().getMonth() + 1;
+        this._dates = [];
 
         for (var year=startYear; year <= endYear; year++) {
             for (var month = startMonth; month <= 12; month++) {
@@ -38,6 +37,8 @@ Ext.define('DefectGridApp', {
                 } else {
                     result.push(data[date]);
                 }
+                this._dates.push(date);
+
                 if (year === endYear && month === endMonth) break;
             }
             startMonth = 1;
@@ -62,27 +63,76 @@ Ext.define('DefectGridApp', {
         });
 
         Ext.Array.each(environments, function(environment) {
-            countData[environment] = _.countBy(environmentData[environment], function(record) { return record.CreationDate; })
+            countData[environment] = _.countBy(environmentData[environment], function(record) { return record.CreationDate; });
             seriesData[environment] = me._createSeries(countData[environment]);
         });
+        
+        this.add({
+            xtype: 'rallychart',
+            chartConfig: {
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: 'Defects By Environment'
+                },
+                xAxis: {
+                    categories: this._dates
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Number of Defects'
+                    },
+                    stackLabels: {
+                        enabled: true,
+                        style: {
+                            fontWeight: 'bold',
+                            color: 'gray'
+                        }
+                    }
+                },
+                legend: {
+                    align: 'right',
+                    x: -100,
+                    verticalAlign: 'top',
+                    y: 20,
+                    floating: true,
+                    backgroundColor: 'white',
+                    borderColor: '#CCC',
+                    borderWidth: 1,
+                    shadow: false
+                },
+                tooltip: {
+                    formatter: function() {
+                        return '<b>'+ this.x +'</b><br/>'+
+                            this.series.name +': '+ this.y;
+                    }
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                        dataLabels: {
+                            enabled: true,
+                            color: 'white'
+                        }
+                    }
+                },
+            },
+            chartData: {
+                categories: this._dates,
+                series: [
+                    {
+                        name: 'Production',
+                        data: seriesData['Production']
+                    },
+                    {
+                        name: 'Test',
+                        data: seriesData['Test']
+                    }
+                ]
+            }
+        });
 
-        debugger;
-        console.log(seriesData);
-
-        // this.add({
-        //     xtype: 'rallygrid',
-        //     store: Ext.create('Rally.data.custom.Store', {
-        //         data: records,
-        //         pageSize: 200
-        //     }),
-        //     columnCfgs: [
-        //         {
-        //             text: 'Name', dataIndex: 'Name', flex: 1
-        //         },
-        //         {
-        //             text: 'Created', dataIndex: 'CreationDate', width: 300
-        //         }
-        //     ]
-        // });
     }
 });

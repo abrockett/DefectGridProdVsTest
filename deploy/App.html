@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DefectGridProdVsTest</title>
+    <title>DefectsByEnvironmentApp</title>
 
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
         Rally.onReady(function () {
-                Ext.define("DefectGridApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){var dataScope=this.getContext().getDataContext(),chart=Ext.create("Rally.ui.chart.Chart",{});Ext.create("Rally.data.WsapiDataStore",{model:"Defect",context:dataScope,fetch:["Name","CreationDate"],sorters:[{property:"CreationDate",direction:"ASC"}],pageSize:5,limit:5,autoLoad:!0,listeners:{load:this._onDataLoaded,scope:this}})},_onDataLoaded:function(store,data){var records=[],date;Ext.Array.each(data,function(record){date=record.get("CreationDate").getFullYear()+" "+record.get("CreationDate").getMonth(),records.push({Name:record.get("Name"),CreationDate:date})}),console.log(records),series=_.groupBy(records,function(record){return record.CreationDate}),console.log(series)}});
+                Ext.define("DefectsByEnvironmentApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){var dataScope=this.getContext().getDataContext();Ext.create("Rally.data.WsapiDataStore",{model:"Defect",context:dataScope,fetch:["Name","CreationDate","Environment"],sorters:[{property:"CreationDate",direction:"ASC"}],pageSize:200,limit:1e3,autoLoad:!0,listeners:{load:this._onDataLoaded,scope:this}})},_createSeries:function(data){for(var startYear=2010,startMonth=1,date,result=[],endYear=(new Date).getFullYear(),endMonth=(new Date).getMonth()+1,year=startYear;endYear>=year;year++){for(var month=startMonth;12>=month&&(date=year+"-"+month,data[date]?result.push(data[date]):result.push(0),year!==endYear||month!==endMonth);month++);startMonth=1}return result},_onDataLoaded:function(store,data){var env,date,environmentData={},environments=[],countData={},seriesData={},me=this;Ext.Array.each(data,function(record){date=Ext.Date.format(record.get("CreationDate"),"Y-n"),env=record.get("Environment"),environmentData[env]||(environments.push(env),environmentData[env]=[]),environmentData[env].push({Name:record.get("Name"),CreationDate:date})}),Ext.Array.each(environments,function(environment){countData[environment]=_.countBy(environmentData[environment],function(record){return record.CreationDate}),seriesData[environment]=me._createSeries(countData[environment])}),this.add({xtype:"rallychart",chartData:{categories:["January","February","March","April"],series:[{type:"column",data:[1,2,3,6]},{type:"line",data:[3,4,2,8]}]}})}});
 
-            Rally.launchApp('DefectGridApp', {
-                name:"DefectGridProdVsTest",
+            Rally.launchApp('DefectsByEnvironmentApp', {
+                name:"DefectsByEnvironmentApp",
 	            parentRepos:""
             });
 
