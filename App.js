@@ -16,8 +16,8 @@ Ext.define('DefectGridApp', {
                     direction: 'ASC'
                 }
             ],
-            pageSize: 5,
-            limit: 5,
+            pageSize: 200,
+            limit: 1000,
             autoLoad: true,
             listeners: {
                 load: this._onDataLoaded,
@@ -26,25 +26,47 @@ Ext.define('DefectGridApp', {
         });
     },
 
-    _onDataLoaded: function(store, data) {
-        debugger;
-        var env, date, seriesData = {};
-        Ext.Array.each(data, function(record) {
-            date = Ext.Date.format(record.get('CreationDate'), 'Y-m');
-            env = record.get('Environment');
-            if(!seriesData[env]) {
-                seriesData[env] = [];
+    _createSeries: function(data) {
+        var startYear = 2010, startMonth = 1, date, result = [];
+        var endYear = new Date().getFullYear(), endMonth = new Date().getMonth() + 1;
+
+        for (var year=startYear; year <= endYear; year++) {
+            for (var month = startMonth; month <= 12; month++) {
+                date = year + '-' + month;
+                if (!data[date]) {
+                    result.push(0);
+                } else {
+                    result.push(data[date]);
+                }
+                if (year === endYear && month === endMonth) break;
             }
-            seriesData[env].push({
+            startMonth = 1;
+        }
+        return result;
+    },
+
+    _onDataLoaded: function(store, data) {
+        var env, date, environmentData = {}, environments = [], countData = {}, seriesData = {};
+        var me = this;
+        Ext.Array.each(data, function(record) {
+            date = Ext.Date.format(record.get('CreationDate'), 'Y-n');
+            env = record.get('Environment');
+            if(!environmentData[env]) {
+                environments.push(env);
+                environmentData[env] = [];
+            }
+            environmentData[env].push({
                 Name: record.get('Name'),
                 CreationDate: date
             });
         });
 
-        // var prodSeries = _.countBy(prodDefects, function(record) { return record.CreationDate; });
-        // var testSeries = _.countBy(testDefects, function(record) { return record.CreationDate; });
-        // var otherSeries = _.countBy(otherDefects, function(record) { return record.CreationDate; });
+        Ext.Array.each(environments, function(environment) {
+            countData[environment] = _.countBy(environmentData[environment], function(record) { return record.CreationDate; })
+            seriesData[environment] = me._createSeries(countData[environment]);
+        });
 
+        debugger;
         console.log(seriesData);
 
         // this.add({
