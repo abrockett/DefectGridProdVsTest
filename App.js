@@ -4,7 +4,6 @@ Ext.define('DefectsByEnvironmentApp', {
          
     launch: function() {
         var dataScope = this.getContext().getDataContext();
-        console.log(dataScope);
         Ext.create('Rally.data.WsapiDataStore', {
             model: 'Defect',
             context: dataScope,
@@ -26,7 +25,7 @@ Ext.define('DefectsByEnvironmentApp', {
     },
 
     _createSeries: function(data) {
-        var startYear = 2010, startMonth = 7, date, result = [];
+        var startYear = 2010, startMonth = 2, date, result = [];
         var endYear = new Date().getFullYear(), endMonth = new Date().getMonth() + 1;
         this._dates = [];
 
@@ -48,7 +47,6 @@ Ext.define('DefectsByEnvironmentApp', {
     },
 
     _createRatio: function(data) {
-        debugger;
         var result = [];
         var prod = _.find(data, { 'name': 'Production' }).data;
         var test = _.find(data, { 'name': 'Test' }).data;
@@ -83,8 +81,7 @@ Ext.define('DefectsByEnvironmentApp', {
             seriesData.push({
                 name: environment,
                 type: 'column',
-                data: me._createSeries(countData[environment]),
-                yAxis: 1
+                data: me._createSeries(countData[environment])
             });
         });
 
@@ -92,15 +89,17 @@ Ext.define('DefectsByEnvironmentApp', {
             name: 'Ratio',
             type: 'line',
             data: me._createRatio(seriesData),
-            yAxis: 2               
+            yAxis: 1,
+            color: 'black',   
         });
 
         this.add({
             xtype: 'rallychart',
-            chartColors: ['#0d233a','#2f7ed8','#8bbc21', '#910000', '#1aadce', '#492970', '#f28f43', '#77a1e5', '#c42525', '#a6c96a'],
+            chartColors: ['#c42525','#2f7ed8','#8bbc21','#f28f43','#1aadce','#492970','#77a1e5','#c42525','#000000','#a6c96a'],
             chartConfig: {
                 chart: {
-                    type: 'column'
+                    height: 500
+                    //type: 'column'
                 },
                 title: {
                     text: 'Defects By Environment',
@@ -109,11 +108,12 @@ Ext.define('DefectsByEnvironmentApp', {
                         font: '16px Lucida Grande, Lucida Sans Unicode, Verdana, Arial, Helvetica, sans-serif'
                     }
                 },
-                xAxis: {
+                xAxis: [{
                     categories: this._dates
-                },
+                }],
                 yAxis: [{
                     min: 0,
+                    gridLineWidth: 0,
                     title: {
                         text: 'Number of Defects'
                     },
@@ -123,9 +123,11 @@ Ext.define('DefectsByEnvironmentApp', {
                             fontWeight: 'bold',
                             color: 'gray'
                         }
-                    }
+                    },
+                    opposite: true
                 }, {
                     min: 0,
+                    max: 4,
                     title: {
                         text: 'Prod / Test Ratio'
                     }
